@@ -1,7 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { Users, UserPlus, CalendarCheck, TrendingUp, Wallet, X, Check, Minus, Clock, Search, ChevronRight, Trash2 } from "lucide-react";
+import {
+  Users, UserPlus, UserCheck, CalendarCheck, TrendingUp, Wallet, X, Check, Minus, Clock,
+  Search, ChevronRight, Trash2, LayoutDashboard, ClipboardList, GraduationCap, CalendarDays,
+  Activity, Receipt, Package, FolderOpen, BarChart3, UserCog, Settings, AlertTriangle,
+  FileText, Download, Printer,
+} from "lucide-react";
 
-// ---------- Seed data ----------
+// ======================================================================
+// SEED DATA — module Joueurs (inchangé)
+// ======================================================================
 const POSITIONS = ["Gardien", "Défenseur", "Milieu", "Attaquant"];
 
 const seedPlayers = [
@@ -59,7 +66,272 @@ function initials(prenom, nom) {
   return `${prenom?.[0] || ""}${nom?.[0] || ""}`.toUpperCase();
 }
 
+// ======================================================================
+// SEED DATA — nouveaux modules
+// ======================================================================
+const seedCoaches = [
+  { id: "c1", nom: "Jean Ateba", telephone: "690 11 22 33", specialite: "Entraîneur principal", categorie: "U13", terrain: "Terrain A", seances: 24 },
+  { id: "c2", nom: "Paul Ondoa", telephone: "677 22 33 44", specialite: "Préparateur physique", categorie: "U17", terrain: "Terrain B", seances: 31 },
+  { id: "c3", nom: "Marie Essomba", telephone: "699 33 44 55", specialite: "Entraîneur gardiens", categorie: "U19", terrain: "Terrain A", seances: 18 },
+];
+
+const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+const seedPlanning = [
+  { id: "pl1", jour: "Lundi", debut: "15:00", fin: "17:00", categorie: "U13", entraineur: "Jean Ateba", terrain: "Terrain A" },
+  { id: "pl2", jour: "Lundi", debut: "17:00", fin: "19:00", categorie: "U17", entraineur: "Paul Ondoa", terrain: "Terrain B" },
+  { id: "pl3", jour: "Mercredi", debut: "16:00", fin: "18:00", categorie: "U9", entraineur: "Marie Essomba", terrain: "Terrain A" },
+  { id: "pl4", jour: "Vendredi", debut: "15:30", fin: "17:30", categorie: "U15", entraineur: "Jean Ateba", terrain: "Terrain B" },
+  { id: "pl5", jour: "Samedi", debut: "09:00", fin: "11:00", categorie: "U19", entraineur: "Paul Ondoa", terrain: "Terrain A" },
+];
+
+const seedStock = [
+  { id: "s1", nom: "Ballons", initial: 50, entrees: 20, sorties: 10, seuil: 20 },
+  { id: "s2", nom: "Maillots", initial: 100, entrees: 30, sorties: 25, seuil: 40 },
+  { id: "s3", nom: "Chasubles", initial: 40, entrees: 10, sorties: 15, seuil: 30 },
+  { id: "s4", nom: "Cônes", initial: 80, entrees: 20, sorties: 10, seuil: 25 },
+];
+
+const seedInvoices = [
+  { id: "N°001", joueur: "Junior Mbarga", montant: 50000, paye: 50000 },
+  { id: "N°002", joueur: "Divine Fotso", montant: 50000, paye: 0 },
+  { id: "N°003", joueur: "Christelle Nguema", montant: 75000, paye: 35000 },
+];
+
+const seedDocCategories = [
+  { nom: "Courriers reçus", count: 12 },
+  { nom: "Courriers envoyés", count: 9 },
+  { nom: "Documents administratifs", count: 21 },
+  { nom: "Certificats", count: 34 },
+  { nom: "Convocations", count: 7 },
+  { nom: "Attestations", count: 15 },
+  { nom: "Archives", count: 48 },
+];
+
+const seedRoles = [
+  { role: "Administrateur", acces: "Tout" },
+  { role: "Directeur", acces: "Joueurs, finances, planning, rapports" },
+  { role: "Secrétaire", acces: "Inscriptions, joueurs, documents, factures" },
+  { role: "Comptable", acces: "Paiements, factures, recettes, dépenses" },
+  { role: "Entraîneur", acces: "Joueurs, présences, planning, évaluations" },
+];
+
+const seedUsers = [
+  { id: "u1", nom: "Alice Mbarga", role: "Administrateur", email: "alice.mbarga@playforacademy.cm" },
+  { id: "u2", nom: "Robert Essiane", role: "Directeur", email: "robert.essiane@playforacademy.cm" },
+  { id: "u3", nom: "Chantal Biya", role: "Secrétaire", email: "chantal.biya@playforacademy.cm" },
+  { id: "u4", nom: "Jean Ateba", role: "Entraîneur", email: "jean.ateba@playforacademy.cm" },
+];
+
+const seedInscriptionsRecent = [
+  { id: "i1", nom: "Kevin Mbala", categorie: "U11", date: "2026-08-10" },
+  { id: "i2", nom: "Sarah Ngo", categorie: "U9", date: "2026-08-09" },
+  { id: "i3", nom: "Alain Fouda", categorie: "U15", date: "2026-08-07" },
+];
+
+const dashboardStats = {
+  joueurs: 125,
+  actifs: 110,
+  nouvellesInscriptions: 8,
+  paiementsMois: 1250000,
+  entrainementsAujourdhui: 3,
+  equipements: 245,
+  facturesImpayees: 6,
+};
+
+const inscriptionsParMois = [
+  { mois: "Mar", valeur: 10 }, { mois: "Avr", valeur: 14 }, { mois: "Mai", valeur: 9 },
+  { mois: "Juin", valeur: 18 }, { mois: "Juil", valeur: 12 }, { mois: "Août", valeur: 8 },
+];
+
+const recettesParMois = [
+  { mois: "Mar", valeur: 850000 }, { mois: "Avr", valeur: 920000 }, { mois: "Mai", valeur: 780000 },
+  { mois: "Juin", valeur: 1100000 }, { mois: "Juil", valeur: 990000 }, { mois: "Août", valeur: 1250000 },
+];
+
+const effectifParCategorie = [
+  { cat: "U9", valeur: 18 }, { cat: "U11", valeur: 22 }, { cat: "U13", valeur: 25 },
+  { cat: "U15", valeur: 20 }, { cat: "U17", valeur: 23 }, { cat: "U19", valeur: 17 },
+];
+
+// ======================================================================
+// MENU PRINCIPAL
+// ======================================================================
+const MENU = [
+  { key: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+  { key: "joueurs", label: "Joueurs", icon: Users },
+  { key: "inscriptions", label: "Inscriptions", icon: ClipboardList },
+  { key: "entraineurs", label: "Entraîneurs", icon: GraduationCap },
+  { key: "planning", label: "Planning", icon: CalendarDays },
+  { key: "entrainements", label: "Entraînements", icon: CalendarCheck },
+  { key: "suivi", label: "Suivi des joueurs", icon: Activity },
+  { key: "paiements", label: "Paiements", icon: Wallet },
+  { key: "factures", label: "Factures", icon: Receipt },
+  { key: "stocks", label: "Stocks / Équipements", icon: Package },
+  { key: "secretariat", label: "Secrétariat", icon: FolderOpen },
+  { key: "rapports", label: "Rapports", icon: BarChart3 },
+  { key: "utilisateurs", label: "Utilisateurs", icon: UserCog },
+  { key: "parametres", label: "Paramètres", icon: Settings },
+];
+const MODULE_TITLES = Object.fromEntries(MENU.map((m) => [m.key, m.label]));
+
+// ======================================================================
+// APP (nouveau point d'entrée)
+// ======================================================================
 export default function App() {
+  const [module, setModule] = useState("dashboard");
+
+  return (
+    <div style={styles.shellRoot}>
+      <style>{fontImport}</style>
+
+      <aside style={styles.globalSidebar}>
+        <div style={styles.brand}>
+          <div style={styles.brandMark}>⚽</div>
+          <div>
+            <div style={styles.brandTitle}>PLAY FOR ACADEMY</div>
+            <div style={styles.brandSub}>Gestion de club</div>
+          </div>
+        </div>
+        <nav style={styles.navList}>
+          {MENU.map(({ key, label, icon: Icon }) => (
+            <div
+              key={key}
+              onClick={() => setModule(key)}
+              style={{ ...styles.navItem, ...(module === key ? styles.navItemActive : {}) }}
+            >
+              <Icon size={16} />
+              <span style={styles.navLabel}>{label}</span>
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      <div style={styles.shellMain}>
+        <header style={styles.shellHeader}>
+          <div style={styles.shellHeaderTitle}>{MODULE_TITLES[module]}</div>
+        </header>
+        <div style={styles.shellBody}>
+          {module === "dashboard" && <DashboardModule />}
+          {module === "joueurs" && <JoueursModule />}
+          {module === "inscriptions" && <InscriptionsModule />}
+          {module === "entraineurs" && <EntraineursModule />}
+          {module === "planning" && <PlanningModule />}
+          {module === "entrainements" && <EntrainementsModule />}
+          {module === "suivi" && <SuiviModule />}
+          {module === "paiements" && <PaiementsModule />}
+          {module === "factures" && <FacturesModule />}
+          {module === "stocks" && <StocksModule />}
+          {module === "secretariat" && <SecretariatModule />}
+          {module === "rapports" && <RapportsModule />}
+          {module === "utilisateurs" && <UtilisateursModule />}
+          {module === "parametres" && <ParametresModule />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 1 — TABLEAU DE BORD
+// ======================================================================
+function DashboardModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.statsRow7}>
+        <StatCard icon={Users} label="Joueurs" value={dashboardStats.joueurs} unit="au total" />
+        <StatCard icon={UserCheck} label="Joueurs actifs" value={dashboardStats.actifs} unit="actifs" />
+        <StatCard icon={ClipboardList} label="Nouvelles inscriptions" value={dashboardStats.nouvellesInscriptions} unit="ce mois" />
+        <StatCard icon={Wallet} label="Paiements du mois" value={dashboardStats.paiementsMois.toLocaleString("fr-FR") + " F"} unit="CFA" />
+        <StatCard icon={CalendarCheck} label="Entraînements" value={dashboardStats.entrainementsAujourdhui} unit="aujourd'hui" />
+        <StatCard icon={Package} label="Équipements" value={dashboardStats.equipements} unit="en stock" />
+        <StatCard icon={AlertTriangle} label="Factures impayées" value={dashboardStats.facturesImpayees} unit="à relancer" accent="#B3413A" />
+      </div>
+
+      <div style={styles.dashGrid}>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Inscriptions par mois</div>
+          <BarMiniChart data={inscriptionsParMois} labelKey="mois" valueKey="valeur" color="#2E7D4F" />
+        </div>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Recettes / paiements</div>
+          <BarMiniChart data={recettesParMois} labelKey="mois" valueKey="valeur" color="#D4A24C" format={(v) => Math.round(v / 1000) + "k"} />
+        </div>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Effectifs par catégorie</div>
+          <BarMiniChart data={effectifParCategorie} labelKey="cat" valueKey="valeur" color="#1B3A2A" />
+        </div>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Prochains entraînements</div>
+          <div style={styles.list}>
+            {seedPlanning.slice(0, 4).map((s) => (
+              <div key={s.id} style={styles.sessionRow}>
+                <div>
+                  <div style={styles.sessionDate}>{s.jour} · {s.debut}–{s.fin}</div>
+                  <div style={styles.sessionLabel}>{s.categorie} · {s.entraineur} · {s.terrain}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Dernières inscriptions</div>
+          <div style={styles.list}>
+            {seedInscriptionsRecent.map((i) => (
+              <div key={i.id} style={styles.sessionRow}>
+                <div>
+                  <div style={styles.sessionDate}>{i.nom}</div>
+                  <div style={styles.sessionLabel}>{i.categorie} · {new Date(i.date).toLocaleDateString("fr-FR")}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={styles.panel}>
+          <div style={styles.sectionHead}>Alertes</div>
+          <div style={styles.list}>
+            <AlertRow icon={AlertTriangle} text={`${dashboardStats.facturesImpayees} factures impayées`} color="#B3413A" />
+            <AlertRow icon={Package} text="Stock de chasubles faible" color="#B8863B" />
+            <AlertRow icon={FileText} text="3 dossiers avec documents manquants" color="#B8863B" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AlertRow({ icon: Icon, text, color }) {
+  return (
+    <div style={styles.sessionRow}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Icon size={15} color={color} />
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{text}</div>
+      </div>
+    </div>
+  );
+}
+
+function BarMiniChart({ data, labelKey, valueKey, color, format }) {
+  const max = Math.max(...data.map((d) => d[valueKey]));
+  return (
+    <div style={styles.barChart}>
+      {data.map((d, i) => (
+        <div key={i} style={styles.barChartCol}>
+          <div style={styles.barChartTrack}>
+            <div style={{ ...styles.barChartFill, height: `${(d[valueKey] / max) * 100}%`, background: color }} />
+          </div>
+          <div style={styles.barChartVal}>{format ? format(d[valueKey]) : d[valueKey]}</div>
+          <div style={styles.barChartLabel}>{d[labelKey]}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 2 — JOUEURS (ta page existante, inchangée dans sa logique)
+// ======================================================================
+function JoueursModule() {
   const [players, setPlayers] = useState(seedPlayers);
   const [sessions, setSessions] = useState(seedSessions);
   const [attendance, setAttendance] = useState(seedAttendance);
@@ -80,7 +352,6 @@ export default function App() {
     `${p.prenom} ${p.nom}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ---- derived stats ----
   const clubStats = useMemo(() => {
     const totalSessions = sessions.length;
     let presentCount = 0, total = 0;
@@ -160,19 +431,8 @@ export default function App() {
   }
 
   return (
-    <div style={styles.app}>
-      <style>{fontImport}</style>
-
-      {/* Sidebar */}
+    <div style={styles.joueursApp}>
       <aside style={styles.sidebar}>
-        <div style={styles.brand}>
-          <div style={styles.brandMark}>⚽</div>
-          <div>
-            <div style={styles.brandTitle}>EFFECTIF</div>
-            <div style={styles.brandSub}>Gestion des joueurs</div>
-          </div>
-        </div>
-
         <div style={styles.searchWrap}>
           <Search size={15} color="#9AA79B" style={{ flexShrink: 0 }} />
           <input
@@ -213,7 +473,6 @@ export default function App() {
         </button>
       </aside>
 
-      {/* Main */}
       <main style={styles.main}>
         <div style={styles.statsRow}>
           <StatCard icon={Users} label="Effectif" value={players.length} unit="joueurs" />
@@ -291,7 +550,7 @@ export default function App() {
   );
 }
 
-// ---------- Sub components ----------
+// ---------- Sous-composants du module Joueurs (inchangés) ----------
 
 function StatCard({ icon: Icon, label, value, unit, accent }) {
   return (
@@ -462,7 +721,8 @@ function PaiementsTab({ entries, onAdd, onMarkPaid }) {
   );
 }
 
-// ---------- Modals ----------
+// ---------- Modals du module Joueurs (inchangés) ----------
+
 function ModalShell({ title, onClose, children, onSubmit }) {
   return (
     <div style={styles.modalOverlay} onClick={onClose}>
@@ -601,8 +861,569 @@ function Field({ label, children }) {
   );
 }
 
-// ---------- Styles ----------
+// ======================================================================
+// MODULE 3 — INSCRIPTIONS (liste + assistant en 5 étapes)
+// ======================================================================
+function InscriptionsModule() {
+  const [list, setList] = useState(seedInscriptionsRecent);
+  const [showWizard, setShowWizard] = useState(false);
 
+  function finish(entry) {
+    setList((prev) => [{ id: "i" + Date.now(), nom: `${entry.prenom} ${entry.nom}`, categorie: entry.categorie, date: todayISO() }, ...prev]);
+    setShowWizard(false);
+  }
+
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.sectionHeadRow}>
+        <div style={styles.sectionHead}>Inscriptions récentes</div>
+        <button style={styles.addPlayerBtnInline} onClick={() => setShowWizard(true)}>
+          <UserPlus size={15} /> Nouvelle inscription
+        </button>
+      </div>
+      <div style={styles.list}>
+        {list.map((i) => (
+          <div key={i.id} style={styles.sessionRow}>
+            <div>
+              <div style={styles.sessionDate}>{i.nom}</div>
+              <div style={styles.sessionLabel}>{i.categorie} · {new Date(i.date).toLocaleDateString("fr-FR")}</div>
+            </div>
+            <ChevronRight size={14} color="#7C8C7D" />
+          </div>
+        ))}
+      </div>
+      {showWizard && <InscriptionWizard onClose={() => setShowWizard(false)} onFinish={finish} />}
+    </div>
+  );
+}
+
+function InscriptionWizard({ onClose, onFinish }) {
+  const [step, setStep] = useState(1);
+  const [joueur, setJoueur] = useState({ prenom: "", nom: "", naissance: "", sexe: "M", categorie: "U11", poste: POSITIONS[0], numero: "" });
+  const [parent, setParent] = useState({ nom: "", telephone: "", whatsapp: "", email: "", adresse: "" });
+  const [docs, setDocs] = useState({ certificat: false, acte: false, photo: false, autorisation: false });
+  const [paiement, setPaiement] = useState({ montant: 5000, mode: "Espèces", date: todayISO(), reference: "" });
+
+  const steps = ["Joueur", "Parent/tuteur", "Documents", "Paiement", "Validation"];
+
+  return (
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={{ ...styles.modal, width: 540 }} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.modalHead}>
+          <div style={styles.modalTitle}>Nouvelle inscription</div>
+          <button type="button" style={styles.modalClose} onClick={onClose}><X size={16} /></button>
+        </div>
+
+        <div style={styles.wizardSteps}>
+          {steps.map((s, i) => (
+            <div
+              key={s}
+              style={{
+                ...styles.wizardStep,
+                ...(step === i + 1 ? styles.wizardStepActive : {}),
+                ...(step > i + 1 ? styles.wizardStepDone : {}),
+              }}
+            >
+              {i + 1}. {s}
+            </div>
+          ))}
+        </div>
+
+        {step === 1 && (
+          <div style={styles.formGrid}>
+            <Field label="Prénom"><input style={styles.input} value={joueur.prenom} onChange={(e) => setJoueur({ ...joueur, prenom: e.target.value })} /></Field>
+            <Field label="Nom"><input style={styles.input} value={joueur.nom} onChange={(e) => setJoueur({ ...joueur, nom: e.target.value })} /></Field>
+            <Field label="Date de naissance"><input type="date" style={styles.input} value={joueur.naissance} onChange={(e) => setJoueur({ ...joueur, naissance: e.target.value })} /></Field>
+            <Field label="Sexe">
+              <select style={styles.input} value={joueur.sexe} onChange={(e) => setJoueur({ ...joueur, sexe: e.target.value })}>
+                <option value="M">Masculin</option>
+                <option value="F">Féminin</option>
+              </select>
+            </Field>
+            <Field label="Catégorie">
+              <select style={styles.input} value={joueur.categorie} onChange={(e) => setJoueur({ ...joueur, categorie: e.target.value })}>
+                {["U9", "U11", "U13", "U15", "U17", "U19"].map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </Field>
+            <Field label="Poste">
+              <select style={styles.input} value={joueur.poste} onChange={(e) => setJoueur({ ...joueur, poste: e.target.value })}>
+                {POSITIONS.map((p) => <option key={p}>{p}</option>)}
+              </select>
+            </Field>
+            <Field label="Numéro de maillot"><input type="number" style={styles.input} value={joueur.numero} onChange={(e) => setJoueur({ ...joueur, numero: e.target.value })} /></Field>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div style={styles.formGrid}>
+            <Field label="Nom"><input style={styles.input} value={parent.nom} onChange={(e) => setParent({ ...parent, nom: e.target.value })} /></Field>
+            <Field label="Téléphone"><input style={styles.input} value={parent.telephone} onChange={(e) => setParent({ ...parent, telephone: e.target.value })} /></Field>
+            <Field label="WhatsApp"><input style={styles.input} value={parent.whatsapp} onChange={(e) => setParent({ ...parent, whatsapp: e.target.value })} /></Field>
+            <Field label="Email"><input type="email" style={styles.input} value={parent.email} onChange={(e) => setParent({ ...parent, email: e.target.value })} /></Field>
+            <Field label="Adresse"><input style={styles.input} value={parent.adresse} onChange={(e) => setParent({ ...parent, adresse: e.target.value })} /></Field>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div style={styles.list}>
+            {[["certificat", "Certificat médical"], ["acte", "Acte de naissance"], ["photo", "Photo"], ["autorisation", "Autorisation parentale"]].map(([key, label]) => (
+              <label key={key} style={{ ...styles.sessionRow, cursor: "pointer" }}>
+                <div style={styles.sessionDate}>{label}</div>
+                <input type="checkbox" checked={docs[key]} onChange={(e) => setDocs({ ...docs, [key]: e.target.checked })} />
+              </label>
+            ))}
+          </div>
+        )}
+
+        {step === 4 && (
+          <div style={styles.formGrid}>
+            <Field label="Montant (F CFA)"><input type="number" style={styles.input} value={paiement.montant} onChange={(e) => setPaiement({ ...paiement, montant: e.target.value })} /></Field>
+            <Field label="Mode de paiement">
+              <select style={styles.input} value={paiement.mode} onChange={(e) => setPaiement({ ...paiement, mode: e.target.value })}>
+                <option>Espèces</option>
+                <option>Orange Money</option>
+                <option>MTN MoMo</option>
+                <option>Virement</option>
+              </select>
+            </Field>
+            <Field label="Date"><input type="date" style={styles.input} value={paiement.date} onChange={(e) => setPaiement({ ...paiement, date: e.target.value })} /></Field>
+            <Field label="Référence"><input style={styles.input} value={paiement.reference} onChange={(e) => setPaiement({ ...paiement, reference: e.target.value })} /></Field>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div style={styles.infoGrid}>
+            <div style={styles.infoRow}><div style={styles.infoLabel}>Joueur</div><div style={styles.infoValue}>{joueur.prenom} {joueur.nom} · {joueur.categorie}</div></div>
+            <div style={styles.infoRow}><div style={styles.infoLabel}>Parent</div><div style={styles.infoValue}>{parent.nom || "—"}</div></div>
+            <div style={styles.infoRow}><div style={styles.infoLabel}>Paiement</div><div style={styles.infoValue}>{Number(paiement.montant).toLocaleString("fr-FR")} F · {paiement.mode}</div></div>
+            <div style={{ ...styles.infoRow, borderBottom: "none" }}>
+              <div style={{ fontSize: 12.5, color: "#2E7D4F", fontWeight: 600 }}>Prêt à valider : joueur créé, facture générée, reçu disponible.</div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          {step > 1 && <button type="button" style={{ ...styles.smallBtn, flex: 1 }} onClick={() => setStep(step - 1)}>Précédent</button>}
+          {step < 5 && <button type="button" style={{ ...styles.submitBtn, marginTop: 0 }} onClick={() => setStep(step + 1)}>Suivant</button>}
+          {step === 5 && <button type="button" style={{ ...styles.submitBtn, marginTop: 0 }} onClick={() => onFinish(joueur)}>Valider l'inscription</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 4 — ENTRAÎNEURS
+// ======================================================================
+function EntraineursModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.cardGrid}>
+        {seedCoaches.map((c) => (
+          <div key={c.id} style={styles.panel}>
+            <div style={styles.profileHeader}>
+              <div style={styles.avatarBig}>{c.nom.split(" ").map((n) => n[0]).join("")}</div>
+              <div>
+                <div style={styles.profileName}>{c.nom}</div>
+                <div style={styles.profileMeta}>{c.specialite}</div>
+              </div>
+            </div>
+            <div style={styles.infoGrid}>
+              <div style={styles.infoRow}><div style={styles.infoLabel}>Téléphone</div><div style={styles.infoValue}>{c.telephone}</div></div>
+              <div style={styles.infoRow}><div style={styles.infoLabel}>Catégorie</div><div style={styles.infoValue}>{c.categorie}</div></div>
+              <div style={styles.infoRow}><div style={styles.infoLabel}>Terrain habituel</div><div style={styles.infoValue}>{c.terrain}</div></div>
+              <div style={{ ...styles.infoRow, borderBottom: "none" }}><div style={styles.infoLabel}>Séances réalisées</div><div style={styles.infoValue}>{c.seances}</div></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 5 — PLANNING (vue calendrier hebdomadaire)
+// ======================================================================
+function PlanningModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.planningGrid}>
+        {JOURS.map((jour) => (
+          <div key={jour} style={styles.planningCol}>
+            <div style={styles.planningDayHead}>{jour}</div>
+            {seedPlanning.filter((s) => s.jour === jour).map((s) => (
+              <div key={s.id} style={styles.planningCard}>
+                <div style={styles.planningTime}>{s.debut} – {s.fin}</div>
+                <div style={styles.planningCat}>{s.categorie}</div>
+                <div style={styles.planningMeta}>{s.entraineur}</div>
+                <div style={styles.planningMeta}>{s.terrain}</div>
+              </div>
+            ))}
+            {seedPlanning.filter((s) => s.jour === jour).length === 0 && <div style={styles.emptyState}>—</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 6 — ENTRAÎNEMENTS (historique des séances)
+// ======================================================================
+function EntrainementsModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.sectionHead}>Historique des séances</div>
+      <div style={styles.list}>
+        {[...seedSessions].reverse().map((s) => (
+          <div key={s.date} style={styles.sessionRow}>
+            <div>
+              <div style={styles.sessionDate}>{new Date(s.date).toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long" })}</div>
+              <div style={styles.sessionLabel}>{s.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 7 — SUIVI DES JOUEURS (vue agrégée)
+// ======================================================================
+function SuiviModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.cardGrid}>
+        {seedPlayers.map((p) => {
+          const perf = seedPerformance[p.id] || [];
+          const avg = perf.length ? (perf.reduce((a, e) => a + e.niveau, 0) / perf.length).toFixed(1) : "—";
+          const att = seedAttendance[p.id] || {};
+          const values = Object.values(att);
+          const presences = values.filter((v) => v === "present").length;
+          const taux = values.length ? Math.round((presences / values.length) * 100) : 0;
+          return (
+            <div key={p.id} style={styles.panel}>
+              <div style={styles.profileHeader}>
+                <div style={styles.avatarBig}>{initials(p.prenom, p.nom)}</div>
+                <div>
+                  <div style={styles.profileName}>{p.prenom} {p.nom}</div>
+                  <div style={styles.profileMeta}>{p.poste}</div>
+                </div>
+              </div>
+              <div style={styles.miniStatsRow}>
+                <MiniStat label="Présence" value={taux + "%"} color="#2E7D4F" />
+                <MiniStat label="Niveau moyen" value={avg + "/5"} color="#D4A24C" />
+              </div>
+              {perf[0] && <div style={styles.perfNote}>{perf[0].note}</div>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 8 — PAIEMENTS (vue agrégée de tous les joueurs)
+// ======================================================================
+function PaiementsModule() {
+  const rows = [];
+  seedPlayers.forEach((p) => {
+    (seedPayments[p.id] || []).forEach((pay) => {
+      rows.push({ joueur: `${p.prenom} ${p.nom}`, ...pay });
+    });
+  });
+  rows.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+  return (
+    <div style={styles.modulePad}>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Date</th>
+            <th style={styles.th}>Joueur</th>
+            <th style={styles.th}>Montant</th>
+            <th style={styles.th}>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td style={styles.td}>{r.date ? new Date(r.date).toLocaleDateString("fr-FR") : "—"}</td>
+              <td style={styles.td}>{r.joueur}</td>
+              <td style={styles.td}>{r.montant.toLocaleString("fr-FR")} F</td>
+              <td style={styles.td}>
+                {r.statut === "paye" ? <span style={styles.paidBadge}><Check size={11} /> Payé</span> : <span style={{ color: "#B3413A", fontWeight: 600, fontSize: 12.5 }}>Dû</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 9 — FACTURES
+// ======================================================================
+function FacturesModule() {
+  const [invoices] = useState(seedInvoices);
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.sectionHeadRow}>
+        <div style={styles.sectionHead}>Factures</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={styles.smallBtn}>+ Nouvelle facture</button>
+          <button style={styles.smallBtn}><Printer size={12} /> Imprimer</button>
+          <button style={styles.smallBtn}><Download size={12} /> PDF</button>
+        </div>
+      </div>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>N°</th>
+            <th style={styles.th}>Joueur</th>
+            <th style={styles.th}>Montant</th>
+            <th style={styles.th}>Payé</th>
+            <th style={styles.th}>Solde</th>
+            <th style={styles.th}>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoices.map((inv) => {
+            const solde = inv.montant - inv.paye;
+            const statut = solde <= 0 ? "PAYÉE" : inv.paye === 0 ? "IMPAYÉE" : "PARTIELLE";
+            const color = statut === "PAYÉE" ? "#2E7D4F" : statut === "IMPAYÉE" ? "#B3413A" : "#B8863B";
+            return (
+              <tr key={inv.id}>
+                <td style={styles.td}>{inv.id}</td>
+                <td style={styles.td}>{inv.joueur}</td>
+                <td style={styles.td}>{inv.montant.toLocaleString("fr-FR")} F</td>
+                <td style={styles.td}>{inv.paye.toLocaleString("fr-FR")} F</td>
+                <td style={styles.td}>{solde.toLocaleString("fr-FR")} F</td>
+                <td style={styles.td}><span style={{ color, fontWeight: 700, fontSize: 12 }}>{statut}</span></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 10 — STOCKS / ÉQUIPEMENTS
+// ======================================================================
+function StocksModule() {
+  const [stock, setStock] = useState(seedStock);
+  const [showAdd, setShowAdd] = useState(false);
+  const [moveModal, setMoveModal] = useState(null);
+
+  function applyMove(id, type, qty) {
+    setStock((prev) => prev.map((s) => (s.id === id ? { ...s, [type]: s[type] + qty } : s)));
+    setMoveModal(null);
+  }
+
+  function addItem(item) {
+    setStock((prev) => [...prev, { id: "s" + Date.now(), entrees: 0, sorties: 0, ...item }]);
+    setShowAdd(false);
+  }
+
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.sectionHeadRow}>
+        <div style={styles.sectionHead}>Stocks / Équipements</div>
+        <button style={styles.smallBtn} onClick={() => setShowAdd(true)}>+ Ajouter équipement</button>
+      </div>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>Équipement</th>
+            <th style={styles.th}>Initial</th>
+            <th style={styles.th}>Entrées</th>
+            <th style={styles.th}>Sorties</th>
+            <th style={styles.th}>Actuel</th>
+            <th style={styles.th}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {stock.map((s) => {
+            const actuel = s.initial + s.entrees - s.sorties;
+            const low = actuel < s.seuil;
+            return (
+              <tr key={s.id}>
+                <td style={styles.td}>
+                  {s.nom} {low && <AlertTriangle size={12} color="#B3413A" style={{ marginLeft: 4, verticalAlign: "middle" }} />}
+                </td>
+                <td style={styles.td}>{s.initial}</td>
+                <td style={styles.td}>{s.entrees}</td>
+                <td style={styles.td}>{s.sorties}</td>
+                <td style={{ ...styles.td, fontWeight: 700, color: low ? "#B3413A" : "#1C2620" }}>{actuel}</td>
+                <td style={styles.td}>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button style={styles.stockBtn} onClick={() => setMoveModal({ id: s.id, type: "entrees" })}>+ Entrée</button>
+                    <button style={styles.stockBtn} onClick={() => setMoveModal({ id: s.id, type: "sorties" })}>+ Sortie</button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {moveModal && (
+        <MoveStockModal
+          type={moveModal.type}
+          onClose={() => setMoveModal(null)}
+          onSave={(qty) => applyMove(moveModal.id, moveModal.type, qty)}
+        />
+      )}
+      {showAdd && <AddStockModal onClose={() => setShowAdd(false)} onSave={addItem} />}
+    </div>
+  );
+}
+
+function MoveStockModal({ onClose, onSave, type }) {
+  const [qty, setQty] = useState(1);
+  return (
+    <ModalShell title={type === "entrees" ? "Entrée de stock" : "Sortie de stock"} onClose={onClose} onSubmit={(e) => { e.preventDefault(); onSave(Number(qty) || 0); }}>
+      <Field label="Quantité"><input type="number" style={styles.input} value={qty} onChange={(e) => setQty(e.target.value)} /></Field>
+      <button type="submit" style={styles.submitBtn}>Enregistrer</button>
+    </ModalShell>
+  );
+}
+
+function AddStockModal({ onClose, onSave }) {
+  const [nom, setNom] = useState("");
+  const [initial, setInitial] = useState(0);
+  const [seuil, setSeuil] = useState(10);
+  return (
+    <ModalShell title="Ajouter un équipement" onClose={onClose} onSubmit={(e) => { e.preventDefault(); if (!nom) return; onSave({ nom, initial: Number(initial), seuil: Number(seuil) }); }}>
+      <div style={styles.formGrid}>
+        <Field label="Nom"><input required style={styles.input} value={nom} onChange={(e) => setNom(e.target.value)} /></Field>
+        <Field label="Stock initial"><input type="number" style={styles.input} value={initial} onChange={(e) => setInitial(e.target.value)} /></Field>
+        <Field label="Seuil d'alerte"><input type="number" style={styles.input} value={seuil} onChange={(e) => setSeuil(e.target.value)} /></Field>
+      </div>
+      <button type="submit" style={styles.submitBtn}>Ajouter</button>
+    </ModalShell>
+  );
+}
+
+// ======================================================================
+// MODULE 11 — SECRÉTARIAT
+// ======================================================================
+function SecretariatModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.cardGrid}>
+        {seedDocCategories.map((c) => (
+          <div key={c.nom} style={{ ...styles.panel, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <FolderOpen size={17} color="#2E7D4F" />
+              <div style={{ fontSize: 13.5, fontWeight: 600 }}>{c.nom}</div>
+            </div>
+            <div style={{ fontSize: 12, color: "#8A968B" }}>{c.count} docs</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 12 — RAPPORTS
+// ======================================================================
+function RapportsModule() {
+  const [periode, setPeriode] = useState({ debut: "2026-01-01", fin: "2026-08-31" });
+  const rows = [
+    ["Effectif total", dashboardStats.joueurs],
+    ["Inscriptions", 62],
+    ["Départs", 5],
+    ["Recettes", "6 250 000 FCFA"],
+    ["Dépenses", "2 100 000 FCFA"],
+    ["Impayés", dashboardStats.facturesImpayees],
+    ["Présence moyenne", "87%"],
+  ];
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.formGrid}>
+        <Field label="Période — du"><input type="date" style={styles.input} value={periode.debut} onChange={(e) => setPeriode({ ...periode, debut: e.target.value })} /></Field>
+        <Field label="au"><input type="date" style={styles.input} value={periode.fin} onChange={(e) => setPeriode({ ...periode, fin: e.target.value })} /></Field>
+      </div>
+      <div style={styles.panel}>
+        <div style={styles.infoGrid}>
+          {rows.map(([label, value]) => (
+            <div key={label} style={styles.infoRow}><div style={styles.infoLabel}>{label}</div><div style={styles.infoValue}>{value}</div></div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+          <button style={styles.smallBtn}><Download size={12} /> Export PDF</button>
+          <button style={styles.smallBtn}><Download size={12} /> Export Excel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 13 — UTILISATEURS (rôles et permissions)
+// ======================================================================
+function UtilisateursModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.sectionHead}>Rôles &amp; permissions</div>
+      <table style={styles.table}>
+        <thead><tr><th style={styles.th}>Rôle</th><th style={styles.th}>Accès</th></tr></thead>
+        <tbody>
+          {seedRoles.map((r) => (
+            <tr key={r.role}><td style={styles.td}>{r.role}</td><td style={styles.td}>{r.acces}</td></tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ height: 20 }} />
+
+      <div style={styles.sectionHeadRow}>
+        <div style={styles.sectionHead}>Utilisateurs</div>
+        <button style={styles.smallBtn}>+ Nouvel utilisateur</button>
+      </div>
+      <div style={styles.list}>
+        {seedUsers.map((u) => (
+          <div key={u.id} style={styles.sessionRow}>
+            <div>
+              <div style={styles.sessionDate}>{u.nom}</div>
+              <div style={styles.sessionLabel}>{u.email}</div>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#2E7D4F" }}>{u.role}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// MODULE 14 — PARAMÈTRES
+// ======================================================================
+function ParametresModule() {
+  return (
+    <div style={styles.modulePad}>
+      <div style={styles.panel}>
+        <div style={styles.infoGrid}>
+          <div style={styles.infoRow}><div style={styles.infoLabel}>Nom de l'académie</div><div style={styles.infoValue}>Play For Academy</div></div>
+          <div style={styles.infoRow}><div style={styles.infoLabel}>Devise</div><div style={styles.infoValue}>FCFA</div></div>
+          <div style={styles.infoRow}><div style={styles.infoLabel}>Saison</div><div style={styles.infoValue}>2025 – 2026</div></div>
+          <div style={{ ...styles.infoRow, borderBottom: "none" }}><div style={styles.infoLabel}>Catégories</div><div style={styles.infoValue}>U9, U11, U13, U15, U17, U19</div></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ======================================================================
+// STYLES
+// ======================================================================
 const fontImport = `
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
 * { box-sizing: border-box; }
@@ -611,22 +1432,55 @@ button:focus-visible { outline: 2px solid #2E7D4F; outline-offset: 2px; }
 `;
 
 const styles = {
-  app: {
-    display: "flex",
-    minHeight: "100vh",
-    background: "#F3F1EA",
-    fontFamily: "'Inter', sans-serif",
-    color: "#1C2620",
-  },
-  sidebar: {
-    width: 260,
-    background: "#1B3A2A",
-    color: "#fff",
-    display: "flex",
-    flexDirection: "column",
-    padding: "20px 16px",
-    flexShrink: 0,
-  },
+  // ---- shell (nouvelle architecture) ----
+  shellRoot: { display: "flex", minHeight: "100vh", background: "#F3F1EA", fontFamily: "'Inter', sans-serif", color: "#1C2620" },
+  globalSidebar: { width: 232, background: "#12261C", color: "#fff", display: "flex", flexDirection: "column", padding: "20px 14px", flexShrink: 0 },
+  navList: { display: "flex", flexDirection: "column", gap: 2, marginTop: 8 },
+  navItem: { display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#B9CBBD" },
+  navItemActive: { background: "#234832", color: "#fff", fontWeight: 600 },
+  navLabel: { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+
+  shellMain: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, height: "100vh" },
+  shellHeader: { padding: "18px 32px", borderBottom: "1px solid #E6E3D9", background: "#F3F1EA", flexShrink: 0 },
+  shellHeaderTitle: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 18 },
+  shellBody: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" },
+  modulePad: { padding: "24px 32px", overflowY: "auto", height: "100%" },
+
+  statsRow7: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 22 },
+  dashGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+
+  barChart: { display: "flex", alignItems: "flex-end", gap: 10, height: 130, marginTop: 10 },
+  barChartCol: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 },
+  barChartTrack: { width: "100%", height: 80, background: "#F0EEE5", borderRadius: 6, display: "flex", alignItems: "flex-end", overflow: "hidden" },
+  barChartFill: { width: "100%", borderRadius: "4px 4px 0 0" },
+  barChartVal: { fontSize: 11, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#3D4A3F" },
+  barChartLabel: { fontSize: 11, color: "#8A968B" },
+
+  cardGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 },
+
+  planningGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 10 },
+  planningCol: { background: "#fff", border: "1px solid #E6E3D9", borderRadius: 10, padding: 10, minHeight: 140, display: "flex", flexDirection: "column", gap: 8 },
+  planningDayHead: { fontSize: 12.5, fontWeight: 700, color: "#1B3A2A", textAlign: "center", paddingBottom: 6, borderBottom: "1px solid #F0EEE5" },
+  planningCard: { background: "#FAF9F5", borderLeft: "3px solid #2E7D4F", borderRadius: 6, padding: "8px 9px" },
+  planningTime: { fontSize: 11, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#1B3A2A" },
+  planningCat: { fontSize: 12.5, fontWeight: 600, marginTop: 2 },
+  planningMeta: { fontSize: 11, color: "#8A968B" },
+
+  table: { width: "100%", borderCollapse: "collapse", background: "#fff", border: "1px solid #E6E3D9", borderRadius: 12, overflow: "hidden" },
+  th: { textAlign: "left", fontSize: 11.5, fontWeight: 700, color: "#8A968B", textTransform: "uppercase", letterSpacing: 0.3, padding: "10px 14px", borderBottom: "1px solid #E6E3D9", background: "#FAF9F5" },
+  td: { fontSize: 13, padding: "10px 14px", borderBottom: "1px solid #F0EEE5" },
+  stockBtn: { background: "#F0EEE5", border: "none", borderRadius: 6, padding: "5px 9px", fontSize: 11.5, fontWeight: 600, color: "#1B3A2A", cursor: "pointer" },
+
+  wizardSteps: { display: "flex", gap: 4, marginBottom: 16, flexWrap: "wrap" },
+  wizardStep: { fontSize: 11, padding: "5px 9px", borderRadius: 6, background: "#F0EEE5", color: "#8A968B", fontWeight: 600 },
+  wizardStepActive: { background: "#1B3A2A", color: "#fff" },
+  wizardStepDone: { background: "#E7F3EC", color: "#2E7D4F" },
+
+  addPlayerBtnInline: { display: "flex", alignItems: "center", gap: 8, background: "#D4A24C", color: "#1B3A2A", border: "none", borderRadius: 8, padding: "9px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" },
+
+  // ---- module Joueurs (mise en page interne, inchangée) ----
+  joueursApp: { display: "flex", height: "100%" },
+  sidebar: { width: 260, background: "#1B3A2A", color: "#fff", display: "flex", flexDirection: "column", padding: "20px 16px", flexShrink: 0 },
   brand: { display: "flex", alignItems: "center", gap: 10, marginBottom: 20 },
   brandMark: { fontSize: 22 },
   brandTitle: { fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: 0.5 },
@@ -697,13 +1551,3 @@ const styles = {
   input: { border: "1px solid #E1E4DE", borderRadius: 8, padding: "8px 10px", fontSize: 13.5, fontFamily: "'Inter', sans-serif", color: "#1C2620", background: "#fff" },
   submitBtn: { width: "100%", background: "#2E7D4F", color: "#fff", border: "none", borderRadius: 9, padding: "11px", fontSize: 13.5, fontWeight: 600, cursor: "pointer", marginTop: 4 },
 };
-
-
-
-
-
-
-
-
-
-                                
