@@ -5,6 +5,7 @@ import {
   Activity, Receipt, Package, FolderOpen, BarChart3, UserCog, Settings, AlertTriangle,
   FileText, Download, Printer, Lock, LogOut, RefreshCw, Upload, Hash, Tag, ShieldCheck,
 } from "lucide-react";
+import { supabase } from "./supabaseClient";
 
 // ======================================================================
 // OUTILS / HELPERS
@@ -538,19 +539,60 @@ function BarMiniChart({ data, labelKey, valueKey, color, format }) {
 // MODULE 2 — JOUEURS
 // ======================================================================
 function JoueursModule({ perms }) {
-  const [players, setPlayers] = useState(seedPlayers);
+  const [players, setPlayers] = useState([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [sessions, setSessions] = useState(seedSessions);
-  const [attendance, setAttendance] = useState(seedAttendance);
-  const [performance, setPerformance] = useState(seedPerformance);
-  const [payments, setPayments] = useState(seedPayments);
+  const [attendance, setAttendance] = useState({});
+  const [performance, setPerformance] = useState({});
+  const [payments, setPayments] = useState({});
 
-  const [selectedId, setSelectedId] = useState(seedPlayers[0].id);
+  const [selectedId, setSelectedId] = useState(null);
   const [tab, setTab] = useState("profil");
   const [search, setSearch] = useState("");
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showAddSession, setShowAddSession] = useState(false);
   const [showAddPerf, setShowAddPerf] = useState(false);
   const [showAddPayment, setShowAddPayment] = useState(false);
+
+  useEffect(() => {
+    chargerJoueurs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function chargerJoueurs() {
+    setLoadingPlayers(true);
+    setLoadError(null);
+    const { data, error } = await supabase
+      .from("joueurs")
+      .select("*")
+      .order("nom", { ascending: true });
+
+    if (error) {
+      console.error("Erreur de chargement des joueurs :", error);
+      setLoadError(error.message);
+      setPlayers([]);
+    } else {
+      // On "traduit" les noms de colonnes Supabase vers ceux utilisés par l'interface
+      const mapped = data.map((row) => ({
+        id: row.id,
+        matricule: row.matricule,
+        nom: row.nom,
+        prenom: row.prenom,
+        sexe: row.sexe,
+        numero: row.numero_maillot,
+        poste: row.poste,
+        categorie: row.categorie,
+        naissance: row.date_naissance,
+        telephone: row.telephone,
+        tuteur: "", // sera géré séparément plus tard (table parents_tuteurs)
+        adhesion: row.date_adhesion,
+      }));
+      setPlayers(mapped);
+      if (mapped.length > 0) setSelectedId(mapped[0].id);
+    }
+    setLoadingPlayers(false);
+  }
 
   const selected = players.find((p) => p.id === selectedId);
 
@@ -583,19 +625,68 @@ function JoueursModule({ perms }) {
     };
   }, [players, sessions, attendance, payments]);
 
-  function addPlayer(data) {
-    const id = "p" + Date.now();
+  async function addPlayer(data) {
     const matricule = genMatricule(players, data.adhesion);
-    setPlayers((prev) => [...prev, { id, matricule, ...data }]);
-    setAttendance((prev) => ({ ...prev, [id]: {} }));
-    setPerformance((prev) => ({ ...prev, [id]: [] }));
-    setPayments((prev) => ({ ...prev, [id]: [] }));
-    setSelectedId(id);
+
+    const { data: inserted, error } = await supabase
+      .from("joueurs")
+      .insert([
+        {
+          matricule,
+          nom: data.nom,
+          prenom: data.prenom,
+          sexe: data.sexe || "M",
+          date_naissance: data.naissance,
+          poste: data.poste,
+          categorie: data.categorie || "U11",
+          numero_maillot: Number(data.numero) || 0,
+          telephone: data.telephone,
+          date_adhesion: data.adhesion,
+        },
+      ])
+      .select();
+
+    if (error) {
+      console.error("Erreur d'ajout du joueur :", error);
+      alert("Erreur lors de l'ajout du joueur : " + error.message);
+      return;
+    }
+
+    const row = inserted[0];
+    const newPlayer = {
+      id: row.id,
+      matricule: row.matricule,
+      nom: row.nom,
+      prenom: row.prenom,
+      sexe: row.sexe,
+      numero: row.numero_maillot,
+      poste: row.poste,
+      categorie: row.categorie,
+      naissance: row.date_naissance,
+      telephone: row.telephone,
+      tuteur: data.tuteur || "",
+      adhesion: row.date_adhesion,
+    };
+
+    setPlayers((prev) => [...prev, newPlayer]);
+    setAttendance((prev) => ({ ...prev, [newPlayer.id]: {} }));
+    setPerformance((prev) => ({ ...prev, [newPlayer.id]: [] }));
+    setPayments((prev) => ({ ...prev, [newPlayer.id]: [] }));
+    setSelectedId(newPlayer.id);
     setShowAddPlayer(false);
   }
 
-  function removePlayer(id) {
+  async function removePlayer(id) {
     if (!perms?.deletePlayers) return;
+
+    const { error } = await supabase.from("joueurs").delete().eq("id", id);
+
+    if (error) {
+      console.error("Erreur de suppression :", error);
+      alert("Erreur lors de la suppression : " + error.message);
+      return;
+    }
+
     setPlayers((prev) => prev.filter((p) => p.id !== id));
     if (selectedId === id && players.length > 1) {
       setSelectedId(players.find((p) => p.id !== id).id);
@@ -684,7 +775,15 @@ function JoueursModule({ perms }) {
         </div>
 
         <div style={styles.rosterList}>
-          {filtered.map((p) => (
+          {loadingPlayers && (
+            <div style={{ color: "#BFD3F5", fontSize: 13, padding: "12px 4px" }}>Chargement des joueurs…</div>
+          )}
+          {!loadingPlayers && loadError && (
+            <div style={{ color: "#F5B0B0", fontSize: 12, padding: "12px 4px" }}>
+              Erreur de chargement : {loadError}
+            </div>
+          )}
+          {!loadingPlayers && filtered.map((p) => (
             <div
               key={p.id}
               onClick={() => { setSelectedId(p.id); setTab("profil"); }}
@@ -703,7 +802,7 @@ function JoueursModule({ perms }) {
               <ChevronRight size={14} color="#BFD3F5" />
             </div>
           ))}
-          {filtered.length === 0 && (
+          {!loadingPlayers && !loadError && filtered.length === 0 && (
             <div style={{ color: "#BFD3F5", fontSize: 13, padding: "12px 4px" }}>Aucun joueur trouvé.</div>
           )}
         </div>
@@ -820,6 +919,8 @@ function ProfilTab({ player }) {
     ["Nom complet", `${player.prenom} ${player.nom}`],
     ["Numéro de maillot", player.numero],
     ["Poste", player.poste],
+    ["Catégorie", player.categorie || "—"],
+    ["Sexe", player.sexe === "F" ? "Féminin" : "Masculin"],
     ["Date de naissance", new Date(player.naissance).toLocaleDateString("fr-FR")],
     ["Âge", age(player.naissance) + " ans"],
     ["Téléphone", player.telephone || "—"],
@@ -998,7 +1099,7 @@ function ModalShell({ title, onClose, children, onSubmit }) {
 }
 
 function AddPlayerModal({ onClose, onSave }) {
-  const empty = { prenom: "", nom: "", numero: "", poste: POSITIONS[0], naissance: "", telephone: "", tuteur: "", adhesion: todayISO() };
+  const empty = { prenom: "", nom: "", numero: "", poste: POSITIONS[0], sexe: "M", categorie: "U11", naissance: "", telephone: "", tuteur: "", adhesion: todayISO() };
   const [form, setForm] = useState(empty);
   const [errors, setErrors] = useState({});
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -1008,6 +1109,7 @@ function AddPlayerModal({ onClose, onSave }) {
     if (!form.prenom.trim()) errs.prenom = "Le prénom est obligatoire.";
     if (!form.nom.trim()) errs.nom = "Le nom est obligatoire.";
     if (!form.naissance) errs.naissance = "La date de naissance est obligatoire.";
+    if (!form.categorie) errs.categorie = "La catégorie est obligatoire.";
     return errs;
   }
 
@@ -1028,6 +1130,17 @@ function AddPlayerModal({ onClose, onSave }) {
         <Field label="Poste">
           <select style={styles.input} value={form.poste} onChange={set("poste")}>
             {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </Field>
+        <Field label="Sexe">
+          <select style={styles.input} value={form.sexe} onChange={set("sexe")}>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+        </Field>
+        <Field label="Catégorie" error={errors.categorie}>
+          <select style={styles.input} value={form.categorie} onChange={set("categorie")}>
+            {["U9", "U11", "U13", "U15", "U17", "U19"].map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </Field>
         <Field label="Date de naissance" error={errors.naissance}><input type="date" style={styles.input} value={form.naissance} onChange={set("naissance")} /></Field>
